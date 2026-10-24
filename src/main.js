@@ -1,0 +1,119 @@
+(function () {
+  document.documentElement.classList.add("js-ready");
+
+  var navToggle = document.querySelector(".nav-toggle");
+  var primaryNav = document.getElementById("navigasi-utama");
+
+  if (navToggle && primaryNav) {
+    navToggle.addEventListener("click", function () {
+      var expanded = navToggle.getAttribute("aria-expanded") === "true";
+      navToggle.setAttribute("aria-expanded", String(!expanded));
+      primaryNav.classList.toggle("is-open", !expanded);
+    });
+
+    primaryNav.querySelectorAll("a").forEach(function (link) {
+      link.addEventListener("click", function () {
+        navToggle.setAttribute("aria-expanded", "false");
+        primaryNav.classList.remove("is-open");
+      });
+    });
+
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && primaryNav.classList.contains("is-open")) {
+        navToggle.setAttribute("aria-expanded", "false");
+        primaryNav.classList.remove("is-open");
+        navToggle.focus();
+      }
+    });
+  }
+
+  var filterButtons = document.querySelectorAll(".filter-btn");
+  var caseCells = document.querySelectorAll(".case-cell");
+  var caseBento = document.getElementById("daftar-kajian");
+
+  if (filterButtons.length > 0 && caseCells.length > 0) {
+    filterButtons.forEach(function (button) {
+      button.addEventListener("click", function () {
+        var selected = button.getAttribute("data-filter") || "semua";
+        if (caseBento) {
+          caseBento.classList.toggle("is-filtered", selected !== "semua");
+        }
+        filterButtons.forEach(function (btn) {
+          var active = btn === button;
+          btn.classList.toggle("is-active", active);
+          btn.setAttribute("aria-pressed", String(active));
+        });
+        caseCells.forEach(function (cell) {
+          var category = cell.getAttribute("data-category");
+          var match = selected === "semua" || category === selected;
+          cell.classList.toggle("is-hidden", !match);
+        });
+      });
+    });
+  }
+
+  var copyButton = document.getElementById("tombol-salin-email");
+  var copyStatus = document.getElementById("status-salin");
+
+  if (copyButton && copyStatus) {
+    copyButton.addEventListener("click", function () {
+      var email = copyButton.getAttribute("data-email") || "anitaecico@gmail.com";
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(email).then(function () {
+          copyStatus.textContent = "Disalin: " + email;
+          setTimeout(function () {
+            copyStatus.textContent = "";
+          }, 3500);
+        });
+      }
+    });
+  }
+
+  var reducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var revealItems = document.querySelectorAll(".reveal-item");
+
+  if (!reducedMotion && "IntersectionObserver" in window && revealItems.length > 0) {
+    revealItems.forEach(function (item) {
+      item.classList.add("is-pending");
+    });
+
+    var revealObserver = new IntersectionObserver(
+      function (entries, observer) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.remove("is-pending");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.12, rootMargin: "0px 0px -32px 0px" }
+    );
+
+    revealItems.forEach(function (item) {
+      revealObserver.observe(item);
+    });
+  }
+
+  var sections = document.querySelectorAll("main section[id]");
+  var navLinks = document.querySelectorAll(".nav-link");
+
+  if ("IntersectionObserver" in window && sections.length > 0 && navLinks.length > 0) {
+    var sectionObserver = new IntersectionObserver(
+      function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            var activeId = "#" + entry.target.id;
+            navLinks.forEach(function (link) {
+              link.classList.toggle("is-current", link.getAttribute("href") === activeId);
+            });
+          }
+        });
+      },
+      { rootMargin: "-25% 0px -60% 0px" }
+    );
+
+    sections.forEach(function (section) {
+      sectionObserver.observe(section);
+    });
+  }
+})();
